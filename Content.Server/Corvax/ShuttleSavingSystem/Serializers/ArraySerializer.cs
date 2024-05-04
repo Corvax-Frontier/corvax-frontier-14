@@ -4,7 +4,7 @@ namespace Content.Server.Corvax.ShuttleSavingSystem.Serializers;
 
 public static class ArraySerializer
 {
-    public static void Serialize<T>(Stream stream, T[] array)
+    public static void Serialize(Stream stream, Array array)
     {
         Span<byte> length = stackalloc byte[sizeof(int)];
 
@@ -16,16 +16,16 @@ public static class ArraySerializer
             Serializer.Serialize(stream, obj);
     }
 
-    public static T[] Deserialize<T>(Stream stream)
+    public static Array Deserialize(Stream stream, Type type)
     {
         Span<byte> length = stackalloc byte[sizeof(int)];
 
         stream.ReadExactly(length);
 
-        var array = new T[BitConverter.ToInt32(length)];
+        var array = Array.CreateInstance(type.GetElementType()!, BitConverter.ToInt32(length));
 
         for (var i = 0; i < array.Length; i++)
-            array[i] = (T) Serializer.Deserialize(stream);
+            array.SetValue(Serializer.Deserialize(stream), i);
 
         return array;
     }
