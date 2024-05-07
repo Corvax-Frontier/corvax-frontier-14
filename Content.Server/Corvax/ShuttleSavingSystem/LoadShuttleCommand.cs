@@ -8,14 +8,15 @@ using Robust.Shared.Console;
 namespace Content.Server.Corvax.ShuttleSavingSystem;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class SaveShuttleCommand : IConsoleCommand
+public sealed class LoadShuttleCommand : IConsoleCommand
 {
     [Dependency] private readonly EntityManager _entity = default!;
     [Dependency] private readonly GridSerializationSystem _serializer = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
 
-    public string Command => "saveshuttle";
+    public string Command => "loadshuttle";
 
-    public string Description => "Saves shuttle.";
+    public string Description => "Loads shuttle.";
 
     public string Help => $"Usage: {Command}";
 
@@ -30,11 +31,12 @@ public sealed class SaveShuttleCommand : IConsoleCommand
         if (!_entity.TryGetComponent<TransformComponent>(mind.CurrentEntity, out var xform))
             return;
 
-        if (xform.GridUid is null)
-            return;
+        using FileStream stream = new("shuttle.sht", FileMode.Open, FileAccess.Read);
 
-        using FileStream stream = new("shuttle.sht", FileMode.Create, FileAccess.Write);
+        var grid = _serializer.Deserialize(stream);
 
-        _serializer.Serialize(stream, xform.GridUid.Value);
+        _transform.SetCoordinates(grid, xform.Coordinates);
+
+        _entity.InitializeAndStartEntity(grid);
     }
 }
