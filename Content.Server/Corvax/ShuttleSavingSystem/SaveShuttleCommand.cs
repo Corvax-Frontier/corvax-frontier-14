@@ -11,7 +11,7 @@ namespace Content.Server.Corvax.ShuttleSavingSystem;
 public sealed class SaveShuttleCommand : IConsoleCommand
 {
     [Dependency] private readonly EntityManager _entity = default!;
-    [Dependency] private readonly GridSerializationSystem _serializer = default!;
+    [Dependency] private readonly IEntitySystemManager _manager = default!;
 
     public string Command => "saveshuttle";
 
@@ -35,6 +35,6 @@ public sealed class SaveShuttleCommand : IConsoleCommand
 
         using FileStream stream = new("shuttle.sht", FileMode.Create, FileAccess.Write);
 
-        _serializer.Serialize(stream, xform.GridUid.Value);
+        _manager.GetEntitySystem<GridSerializationSystem>().Serialize(stream, xform.GridUid.Value);
     }
 }

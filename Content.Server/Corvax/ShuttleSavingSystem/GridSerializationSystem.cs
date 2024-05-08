@@ -13,8 +13,16 @@ public sealed class GridSerializationSystem : EntitySystem
 
         UnmanagedSerializer.Serialize(stream, components.Count);
 
+        MemoryStream memory = new();
+
         foreach (var component in components)
-            JsonSerializer.Serialize(stream, component);
+        {
+            StringSerializer.Serialize(stream, component.GetType().AssemblyQualifiedName!);
+            JsonSerializer.Serialize(memory, component, component.GetType());
+            UnmanagedSerializer.Serialize(stream, memory.Length);
+            memory.CopyTo(stream);
+            memory.SetLength(0);
+        }
 
         /*var query = AllEntityQuery<TransformComponent>();
 
@@ -38,11 +46,19 @@ public sealed class GridSerializationSystem : EntitySystem
 
         var count = UnmanagedSerializer.Deserialize<int>(stream);
 
+        MemoryStream memory = new();
+
         for (var i = 0; i < count; i++)
         {
-            var component = JsonSerializer.Deserialize<Component>(stream);
+            var type = Type.GetType(StringSerializer.Deserialize(stream));
 
-            EntityManager.AddComponent(grid, component!);
+            var buffer = new byte[UnmanagedSerializer.Deserialize<long>(stream)];
+
+            stream.ReadExactly(buffer);
+
+            var component = (Component) JsonSerializer.Deserialize(buffer, type!)!;
+
+            EntityManager.AddComponent(grid, component);
         }
 
         return grid;

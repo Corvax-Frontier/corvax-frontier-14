@@ -11,8 +11,7 @@ namespace Content.Server.Corvax.ShuttleSavingSystem;
 public sealed class LoadShuttleCommand : IConsoleCommand
 {
     [Dependency] private readonly EntityManager _entity = default!;
-    [Dependency] private readonly GridSerializationSystem _serializer = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly IEntitySystemManager _manager = default!;
 
     public string Command => "loadshuttle";
 
@@ -33,9 +32,9 @@ public sealed class LoadShuttleCommand : IConsoleCommand
 
         using FileStream stream = new("shuttle.sht", FileMode.Open, FileAccess.Read);
 
-        var grid = _serializer.Deserialize(stream);
+        var grid = _manager.GetEntitySystem<GridSerializationSystem>().Deserialize(stream);
 
-        _transform.SetCoordinates(grid, xform.Coordinates);
+        _manager.GetEntitySystem<SharedTransformSystem>().SetCoordinates(grid, xform.Coordinates);
 
         _entity.InitializeAndStartEntity(grid);
     }
