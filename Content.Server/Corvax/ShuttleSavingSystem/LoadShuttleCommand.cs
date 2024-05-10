@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using Content.Server.Administration;
 using Content.Shared.Administration;
-using Content.Shared.Mind;
-using Content.Shared.Players;
 using Robust.Shared.Console;
 
 namespace Content.Server.Corvax.ShuttleSavingSystem;
@@ -21,21 +19,15 @@ public sealed class LoadShuttleCommand : IConsoleCommand
 
     public void Execute(IConsoleShell shell, string arg, string[] args)
     {
-        if (shell.Player is null)
-            return;
-
-        if (!_entity.TryGetComponent<MindComponent>(shell.Player.GetMind(), out var mind))
-            return;
-
-        if (!_entity.TryGetComponent<TransformComponent>(mind.CurrentEntity, out var xform))
+        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var xform))
             return;
 
         using FileStream stream = new("shuttle.sht", FileMode.Open, FileAccess.Read);
 
-        var grid = _manager.GetEntitySystem<GridSerializationSystem>().Deserialize(stream);
+        var grid = _manager.GetEntitySystem<GridSerializationSystem>().Deserialize(stream, xform.MapID);
 
         _manager.GetEntitySystem<SharedTransformSystem>().SetCoordinates(grid, xform.Coordinates);
 
-        _entity.InitializeAndStartEntity(grid);
+        //_entity.InitializeAndStartEntity(grid);
     }
 }

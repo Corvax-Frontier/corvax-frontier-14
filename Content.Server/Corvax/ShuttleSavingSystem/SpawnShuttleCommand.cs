@@ -1,7 +1,5 @@
 using Content.Server.Administration;
 using Content.Shared.Administration;
-using Content.Shared.Mind;
-using Content.Shared.Players;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
 
@@ -22,13 +20,7 @@ public sealed class SpawnShuttleCommand : IConsoleCommand
 
     public void Execute(IConsoleShell shell, string arg, string[] args)
     {
-        if (shell.Player is null)
-            return;
-
-        if (!_entity.TryGetComponent<MindComponent>(shell.Player.GetMind(), out var mind))
-            return;
-
-        if (!_entity.TryGetComponent<TransformComponent>(mind.CurrentEntity, out var xform))
+        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var xform))
             return;
 
         var grid = _mapManager.CreateGridEntity(xform.MapID);
