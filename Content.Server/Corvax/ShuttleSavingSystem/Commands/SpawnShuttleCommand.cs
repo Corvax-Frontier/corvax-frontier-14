@@ -3,7 +3,7 @@ using Content.Shared.Administration;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
 
-namespace Content.Server.Corvax.ShuttleSavingSystem;
+namespace Content.Server.Corvax.ShuttleSavingSystem.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
 public sealed class SpawnShuttleCommand : IConsoleCommand
@@ -20,15 +20,15 @@ public sealed class SpawnShuttleCommand : IConsoleCommand
 
     public void Execute(IConsoleShell shell, string arg, string[] args)
     {
-        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var xform))
+        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var transform))
             return;
 
-        var grid = _mapManager.CreateGridEntity(xform.MapID);
+        var grid = _mapManager.CreateGridEntity(transform.MapID);
         //var gridXform = _entity.GetComponent<TransformComponent>(grid);
 
-        var transform = _entity.System<SharedTransformSystem>();
+        var transformSystem = _entity.System<SharedTransformSystem>();
 
-        transform.SetWorldPosition(grid, transform.GetWorldPosition(xform));
+        transformSystem.SetWorldPosition(grid, transformSystem.GetWorldPosition(transform));
 
         //_map.SetTile(grid, new Vector2i(0, 0), new(_tile["FloorSteel"].TileId));
         //_map.SetTile(grid, new Vector2i(), new(_tile["FloorSteel"].TileId));

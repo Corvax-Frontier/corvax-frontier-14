@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using Content.Server.Administration;
+using Content.Server.Corvax.ShuttleSavingSystem.EntitySystems;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
 
-namespace Content.Server.Corvax.ShuttleSavingSystem;
+namespace Content.Server.Corvax.ShuttleSavingSystem.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
 public sealed class SaveShuttleCommand : IConsoleCommand
@@ -19,14 +20,18 @@ public sealed class SaveShuttleCommand : IConsoleCommand
 
     public void Execute(IConsoleShell shell, string arg, string[] args)
     {
-        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var xform))
+        if (!_entity.TryGetComponent<TransformComponent>(shell.Player?.AttachedEntity, out var transform))
             return;
 
-        if (xform.GridUid is null)
+        if (transform.GridUid is null)
             return;
 
         using FileStream stream = new("shuttle.sht", FileMode.Create, FileAccess.Write);
 
-        _manager.GetEntitySystem<GridSerializationSystem>().Serialize(stream, xform.GridUid.Value);
+        var time = System.Diagnostics.Stopwatch.GetTimestamp();
+
+        _manager.GetEntitySystem<GridSerializationSystem>().Serialize(stream, transform.GridUid.Value);
+
+        shell.WriteLine(((double) (System.Diagnostics.Stopwatch.GetTimestamp() - time) / System.Diagnostics.Stopwatch.Frequency).ToString());
     }
 }

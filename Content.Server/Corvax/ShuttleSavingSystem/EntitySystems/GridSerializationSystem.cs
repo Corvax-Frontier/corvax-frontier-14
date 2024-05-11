@@ -4,21 +4,25 @@ using System.Numerics;
 using Content.Server.Atmos.Components;
 using Content.Server.Corvax.ShuttleSavingSystem.Serializers;
 using Content.Shared.Atmos;
+using Content.Shared.Containers;
 using Robust.Server.GameObjects;
+using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
-namespace Content.Server.Corvax.ShuttleSavingSystem;
+namespace Content.Server.Corvax.ShuttleSavingSystem.EntitySystems;
 
-public sealed class GridSerializationSystem : EntitySystem
+public sealed partial class GridSerializationSystem : EntitySystem
 {
     [Dependency] private readonly MapSystem _map = default!;
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
 
     public void Serialize(Stream stream, EntityUid grid)
     {
-        var mapGrid = EntityManager.GetComponent<MapGridComponent>(grid);
+        var mapGrid = Comp<MapGridComponent>(grid);
 
         var tiles = _map.GetAllTiles(grid, mapGrid).ToList();
 
@@ -30,7 +34,7 @@ public sealed class GridSerializationSystem : EntitySystem
             UnmanagedSerializer.Serialize(stream, new Vector2i(tile.X, tile.Y));
         }
 
-        var atmosphere = EntityManager.GetComponent<GridAtmosphereComponent>(grid);
+        var atmosphere = Comp<GridAtmosphereComponent>(grid);
 
         foreach (var tile in tiles)
         {
@@ -48,6 +52,8 @@ public sealed class GridSerializationSystem : EntitySystem
                 UnmanagedSerializer.Serialize(stream, gas[i]);
         }
 
+        List<(EntityUid Entity, BaseContainer Container)> containers = [];
+
         List<Entity<TransformComponent, MetaDataComponent>> entities = [];
 
         var query = AllEntityQuery<TransformComponent, MetaDataComponent>();
@@ -60,11 +66,27 @@ public sealed class GridSerializationSystem : EntitySystem
 
         foreach (var entity in entities)
         {
+            UnmanagedSerializer.Serialize(stream, entity.Owner.Id);
             StringSerializer.Serialize(stream, entity.Comp2.EntityPrototype!.ID);
-
             UnmanagedSerializer.Serialize(stream, entity.Comp1.Coordinates.Position);
-
+            UnmanagedSerializer.Serialize(stream, entity.Comp1.Anchored);
             UnmanagedSerializer.Serialize(stream, entity.Comp1.LocalRotation);
+
+            SerializeComponents(stream, entity);
+
+            var parent = Transform(entity).ParentUid;
+
+            if (parent.IsValid() && _container.TryGetContainingContainer(parent, entity, out var container))
+                containers.Add((entity, container));
+        }
+
+        UnmanagedSerializer.Serialize(stream, containers.Count);
+
+        foreach ((var entity, var container) in containers)
+        {
+            UnmanagedSerializer.Serialize(stream, entity.Id);
+            UnmanagedSerializer.Serialize(stream, container.Owner.Id);
+            StringSerializer.Serialize(stream, container.ID);
         }
     }
 
@@ -76,14 +98,15 @@ public sealed class GridSerializationSystem : EntitySystem
 
         for (var i = 0; i < tiles.Capacity; i++)
         {
-            var tile = _tile[StringSerializer.Deserialize(stream)];
+            var tile = StringSerializer.Deserialize(stream);
+            var coordinates = UnmanagedSerializer.Deserialize<Vector2i>(stream);
 
-            tiles.Add((UnmanagedSerializer.Deserialize<Vector2i>(stream), new(tile.TileId)));
+            tiles.Add((coordinates, new(_tile[tile].TileId)));
         }
 
         _map.SetTiles(grid, tiles);
 
-        var atmosphere = EntityManager.AddComponent<GridAtmosphereComponent>(grid);
+        var atmosphere = AddComp<GridAtmosphereComponent>(grid);
 
         foreach ((var tile, _) in tiles)
         {
@@ -102,15 +125,50 @@ public sealed class GridSerializationSystem : EntitySystem
             atmosphereTiles.Add(tile, new(grid, tile, new(moles, temperature)));
         }
 
+        Dictionary<int, EntityUid> entities = [];
+
         var count = UnmanagedSerializer.Deserialize<int>(stream);
 
         for (var i = 0; i < count; i++)
         {
-            var entity = SpawnAtPosition(StringSerializer.Deserialize(stream), new(grid, UnmanagedSerializer.Deserialize<Vector2>(stream)));
+            var entityUid = UnmanagedSerializer.Deserialize<int>(stream);
 
-            var transform = EntityManager.GetComponent<TransformComponent>(entity);
+            var entity = EntityManager.CreateEntityUninitialized(StringSerializer.Deserialize(stream));
+
+            var transform = Transform(entity);
+
+            var coordinates = UnmanagedSerializer.Deserialize<Vector2>(stream);
+
+            var anchored = UnmanagedSerializer.Deserialize<bool>(stream);
+
+            _transform.SetCoordinates(entity, transform, new(grid, coordinates), unanchor: !anchored);
 
             transform.LocalRotation = UnmanagedSerializer.Deserialize<Angle>(stream);
+
+            RemComp<ContainerFillComponent>(entity);
+
+            DeserializeComponents(stream, entity);
+
+            EntityManager.InitializeAndStartEntity(entity);
+
+            if (EntityManager.TryGetComponent<ContainerManagerComponent>(entity, out var containerManager))
+                foreach (var container in _container.GetAllContainers(entity, containerManager))
+                    foreach (var containerEntity in _container.EmptyContainer(container, true, reparent: false))
+                        Del(containerEntity);
+
+            entities.Add(entityUid, entity);
+        }
+
+        count = UnmanagedSerializer.Deserialize<int>(stream);
+
+        for (var i = 0; i < count; i++)
+        {
+            var entity = UnmanagedSerializer.Deserialize<int>(stream);
+            var container = UnmanagedSerializer.Deserialize<int>(stream);
+            var containerId = StringSerializer.Deserialize(stream);
+
+            if (_container.TryGetContainer(entities[container], containerId, out var containerEntity))
+                _container.InsertOrDrop(entities[entity], containerEntity);
         }
 
         return grid;
