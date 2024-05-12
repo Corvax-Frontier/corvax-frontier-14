@@ -14,7 +14,7 @@ public sealed partial class GridSerializationSystem
 
     private readonly Dictionary<Type, ComponentDeserializer<IComponent>> _deserializers = [];
 
-    public override void Initialize()
+    private void InitializeComponents()
     {
         AddSerializer<StackComponent>(SerializeStackComponent);
         AddDeserializer<StackComponent>(DeserializeStackComponent);

@@ -20,6 +20,11 @@ public sealed partial class GridSerializationSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
 
+    public override void Initialize()
+    {
+        InitializeComponents();
+    }
+
     public void Serialize(Stream stream, EntityUid grid)
     {
         var mapGrid = Comp<MapGridComponent>(grid);
