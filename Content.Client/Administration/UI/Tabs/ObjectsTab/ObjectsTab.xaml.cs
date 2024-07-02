@@ -41,8 +41,8 @@ public sealed partial class ObjectsTab : Control
 
         foreach (var type in Enum.GetValues(typeof(ObjectsTabSelection)))
         {
-            _selections.Add((ObjectsTabSelection)type!);
-            ObjectTypeOptions.AddItem(Enum.GetName((ObjectsTabSelection)type)!);
+            _selections.Add((ObjectsTabSelection) type!);
+            ObjectTypeOptions.AddItem(Enum.GetName((ObjectsTabSelection) type)!);
         }
 
         RefreshObjectList();
@@ -62,24 +62,24 @@ public sealed partial class ObjectsTab : Control
                 entities.AddRange(_entityManager.EntitySysManager.GetEntitySystem<StationSystem>().Stations);
                 break;
             case ObjectsTabSelection.Grids:
-            {
-                var query = _entityManager.AllEntityQueryEnumerator<MapGridComponent, MetaDataComponent>();
-                while (query.MoveNext(out var uid, out _, out var metadata))
                 {
-                    entities.Add((metadata.EntityName, _entityManager.GetNetEntity(uid)));
-                }
+                    var query = _entityManager.AllEntityQueryEnumerator<MapGridComponent, MetaDataComponent>();
+                    while (query.MoveNext(out var uid, out _, out var metadata))
+                    {
+                        entities.Add((metadata.EntityName, _entityManager.GetNetEntity(uid)));
+                    }
 
-                break;
-            }
-            case ObjectsTabSelection.Maps:
-            {
-                var query = _entityManager.AllEntityQueryEnumerator<MapComponent, MetaDataComponent>();
-                while (query.MoveNext(out var uid, out _, out var metadata))
-                {
-                    entities.Add((metadata.EntityName, _entityManager.GetNetEntity(uid)));
+                    break;
                 }
-                break;
-            }
+            case ObjectsTabSelection.Maps:
+                {
+                    var query = _entityManager.AllEntityQueryEnumerator<MapComponent, MetaDataComponent>();
+                    while (query.MoveNext(out var uid, out _, out var metadata))
+                    {
+                        entities.Add((metadata.EntityName, _entityManager.GetNetEntity(uid)));
+                    }
+                    break;
+                }
             default:
                 throw new ArgumentOutOfRangeException(nameof(selection), selection, null);
         }
@@ -147,4 +147,3 @@ public sealed partial class ObjectsTab : Control
         Stations,
     }
 }
-

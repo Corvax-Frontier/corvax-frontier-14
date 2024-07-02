@@ -34,8 +34,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: MaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: MaleDeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: FemaleHuman
@@ -72,8 +79,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: FemaleGasp
+    DefaultDeathgasp:
+      collection: FemaleDeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: MaleReptilian
@@ -92,8 +106,15 @@
       collection: MaleCry
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: MaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: DeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: FemaleReptilian
@@ -112,6 +133,10 @@
       collection: FemaleCry
     Weh:
       collection: Weh
+    Gasp:
+      collection: FemaleGasp
+    DefaultDeathgasp:
+      collection: FemaleDeathGasp
 
 - type: emoteSounds
   id: MaleSlime
@@ -148,8 +173,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: MaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: MaleDeathGasp
+>>>>>>> upstream/master
   params:
     variation: 0.125
 
@@ -188,8 +220,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: FemaleGasp
+    DefaultDeathgasp:
+      collection: FemaleDeathGasp
+>>>>>>> upstream/master
   params:
     variation: 0.125
 
@@ -215,8 +254,15 @@
       collection: BikeHorn
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       path: /Audio/Voice/Diona/diona_scream.ogg
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: DeathGasp
+>>>>>>> upstream/master
   params:
     variation: 0.125
 
@@ -235,8 +281,15 @@
       path: /Audio/Voice/Arachnid/arachnid_click.ogg
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: DeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: UnisexDwarf
@@ -271,8 +324,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: MaleDeathGasp
+>>>>>>> upstream/master
   params:
     variation: 0.125
     pitch: 0.75
@@ -310,8 +370,15 @@
       collection: Whistles
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: FemaleGasp
+    DefaultDeathgasp:
+      collection: FemaleDeathGasp
+>>>>>>> upstream/master
   params:
     variation: 0.125
     pitch: 0.75
@@ -333,6 +400,7 @@
       path: /Audio/Voice/Moth/moth_squeak.ogg
     Weh:
       collection: Weh
+<<<<<<< HEAD
     DefaultDeathgasp: # Corvax-Frontier
       collection: MaleHumanGaspSound
 
@@ -351,6 +419,12 @@
       path: /Audio/Voice/Moth/moth_chitter.ogg
     Squeak:
       path: /Audio/Voice/Moth/moth_squeak.ogg
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: MothDeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: UnisexSilicon

@@ -25,6 +25,9 @@
   special:
   - !type:AddImplantSpecial
     implants: [ MindShieldImplant, TrackingImplant ]
+  - !type:GiveItemOnHolidaySpecial
+    holiday: FrontierBirthday
+    prototype: FrontierBirthdayGift
 
 - type: startingGear
   id: DetectiveNFGear
@@ -32,4 +35,17 @@
     ears: ClothingHeadsetNfsdCream
     pocket1: WeaponRevolverInspector
     pocket2: SpeedLoaderMagnum
+<<<<<<< HEAD
     neck: ClothingNeckStarSilverBadge # Corvax-Frontier
+=======
+  storage:
+    back:
+    - Flash
+    - MagazinePistol
+    - MagazinePistolRubber
+    - ForensicPad
+    - ForensicScanner
+    - FrontierUplinkCoin10
+    - LogProbeCartridge
+    - RubberStampDetective
+>>>>>>> upstream/master

@@ -64,6 +64,10 @@
       collection: HarpyHonks
     Weh:
       collection: Weh
+    Gasp:
+      collection: HarpyGasp
+    DefaultDeathgasp:
+      collection: HarpyDeathGasp
 
 - type: emoteSounds
   id: MaleVulpkanin
@@ -104,8 +108,15 @@
       collection: VulpkaninHowls
     Awoo:
       collection: VulpkaninHowls
+<<<<<<< HEAD
     DefaultDeathgasp:
       collection: MaleHumanGaspSound
+=======
+    Gasp:
+      collection: MaleGasp
+    DefaultDeathgasp:
+      collection: MaleDeathGasp
+>>>>>>> upstream/master
 
 - type: emoteSounds
   id: FemaleVulpkanin
@@ -146,5 +157,12 @@
       collection: VulpkaninHowls
     Awoo:
       collection: VulpkaninHowls
+<<<<<<< HEAD
     DefaultDeathgasp:
       collection: FemaleHumanGaspSound
+=======
+    Gasp:
+      collection: FemaleGasp
+    DefaultDeathgasp:
+      collection: FemaleDeathGasp
+>>>>>>> upstream/master

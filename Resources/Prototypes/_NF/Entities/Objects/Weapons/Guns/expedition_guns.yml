@@ -73,7 +73,7 @@
 
 # Energy
 - type: entity
-  parent: [ WeaponLaserGun, UnregisteredFirearmBase ]
+  parent: [ WeaponLaserPistolNF, UnregisteredFirearmBase ]
   noSpawn: true
   id: WeaponLaserGunExpedition
 

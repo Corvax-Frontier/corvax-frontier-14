@@ -26,6 +26,7 @@ using Content.Shared.StatusIcon;
 using JetBrains.Annotations;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
@@ -46,9 +47,9 @@ namespace Content.Server.Station.Systems;
 [PublicAPI]
 public sealed class StationSpawningSystem : SharedStationSpawningSystem
 {
+    [Dependency] private readonly IConfigurationManager _configurationManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IConfigurationManager _configurationManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly HumanoidAppearanceSystem _humanoidSystem = default!;
     [Dependency] private readonly IdCardSystem _cardSystem = default!;
@@ -58,7 +59,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
     [Dependency] private readonly MetaDataSystem _metaSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
-
+    [Dependency] private readonly ActorSystem _actors = default!;
     [Dependency] private readonly ArrivalsSystem _arrivalsSystem = default!;
     [Dependency] private readonly ContainerSpawnPointSystem _containerSpawnPointSystem = default!;
 
@@ -75,7 +76,15 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
         _spawnerCallbacks = new Dictionary<SpawnPriorityPreference, Action<PlayerSpawningEvent>>()
         {
             { SpawnPriorityPreference.Arrivals, _arrivalsSystem.HandlePlayerSpawning },
-            { SpawnPriorityPreference.Cryosleep, _containerSpawnPointSystem.HandlePlayerSpawning }
+            {
+                SpawnPriorityPreference.Cryosleep, ev =>
+                {
+                    if (_arrivalsSystem.Forced)
+                        _arrivalsSystem.HandlePlayerSpawning(ev);
+                    else
+                        _containerSpawnPointSystem.HandlePlayerSpawning(ev);
+                }
+            }
         };
     }
 
@@ -191,13 +200,6 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             profile = HumanoidCharacterProfile.RandomWithSpecies(speciesId);
         }
 
-        if (prototype?.StartingGear != null)
-        {
-            var startingGear = _prototypeManager.Index<StartingGearPrototype>(prototype.StartingGear);
-            EquipStartingGear(entity.Value, startingGear, raiseEvent: false);
-        }
-
-        // Run loadouts after so stuff like storage loadouts can get
         var jobLoadout = LoadoutSystem.GetJobPrototype(prototype?.ID);
         var bankBalance = profile!.BankBalance; //Frontier
 
@@ -211,7 +213,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             if (loadout == null)
             {
                 loadout = new RoleLoadout(jobLoadout);
-                loadout.SetDefault(_prototypeManager);
+                loadout.SetDefault(profile, _actors.GetSession(entity), _prototypeManager);
             }
 
             // Order loadout selections by the order they appear on the prototype.
@@ -224,7 +226,6 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
                         Log.Error($"Unable to find loadout prototype for {items.Prototype}");
                         continue;
                     }
-
                     if (!_prototypeManager.TryIndex(loadoutProto.Equipment, out var startingGear))
                     {
                         Log.Error($"Unable to find starting gear {loadoutProto.Equipment} for loadout {loadoutProto}");
@@ -250,6 +251,11 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
                 _hands.TryForcePickupAnyHand(entity.Value, translatorEntity, checkActionBlocker: false);
             }
 
+            // Frontier: do not re-equip roleLoadout.
+            // Frontier: DO equip job startingGear.
+            if (prototype?.StartingGear is not null)
+                EquipStartingGear(entity.Value, prototype.StartingGear, raiseEvent: false);
+
             var bank = EnsureComp<BankAccountComponent>(entity.Value);
             bank.Balance = bankBalance;
             if (_playerManager.TryGetSessionByEntity(entity.Value, out var player))
@@ -259,7 +265,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
         }
 
         var gearEquippedEv = new StartingGearEquippedEvent(entity.Value);
-        RaiseLocalEvent(entity.Value, ref gearEquippedEv, true);
+        RaiseLocalEvent(entity.Value, ref gearEquippedEv);
 
         if (profile != null)
         {
@@ -313,10 +319,8 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
         _cardSystem.TryChangeJobTitle(cardId, jobPrototype.LocalizedName, card);
         _cardSystem.TryChangeJobPrototype(cardId, jobPrototype, card);
 
-        if (_prototypeManager.TryIndex<StatusIconPrototype>(jobPrototype.Icon, out var jobIcon))
-        {
+        if (_prototypeManager.TryIndex(jobPrototype.Icon, out var jobIcon))
             _cardSystem.TryChangeJobIcon(cardId, jobIcon, card);
-        }
 
         var extendedAccess = false;
         if (station != null)

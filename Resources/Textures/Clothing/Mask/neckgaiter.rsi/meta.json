@@ -15,15 +15,19 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
       "name": "equipped-MASK-resomi",
       "directions": 4
     },
     {
       "name": "equipped-MASK-vox",
+=======
+      "name": "equipped-MASK-reptilian",
+>>>>>>> upstream/master
       "directions": 4
     },
     {
-      "name": "equipped-MASK-reptilian",
+      "name": "equipped-MASK-vox",
       "directions": 4
     },
     {

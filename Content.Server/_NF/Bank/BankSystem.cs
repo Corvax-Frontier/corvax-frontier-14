@@ -10,7 +10,9 @@ using Content.Server.Cargo.Components;
 using Content.Shared._NF.Bank.Events;
 using Robust.Server.Player;
 using Content.Shared.Preferences.Loadouts;
-using Content.Shared.Database;
+using Robust.Shared.Prototypes;
+using Content.Shared.Roles;
+using Content.Shared.Traits;
 
 namespace Content.Server.Bank;
 
@@ -63,10 +65,10 @@ public sealed partial class BankSystem : EntitySystem
             bank.Balance,
             profile.Appearance,
             profile.SpawnPriority,
-            profile.JobPriorities,
+            new Dictionary<ProtoId<JobPrototype>, JobPriority>(profile.JobPriorities), // Frontier Merge
             profile.PreferenceUnavailable,
-            profile.AntagPreferences,
-            profile.TraitPreferences,
+            new HashSet<ProtoId<AntagPrototype>>(profile.AntagPreferences), // Frontier Merge
+            new HashSet<ProtoId<TraitPrototype>>(profile.TraitPreferences), // Frontier Merge
             new Dictionary<string, RoleLoadout>(profile.Loadouts));
 
         args.State = new BankAccountComponentState

@@ -19,6 +19,9 @@
   special:
   - !type:AddImplantSpecial
     implants: [ MindShieldImplant, TrackingImplant ]
+  - !type:GiveItemOnHolidaySpecial
+    holiday: FrontierBirthday
+    prototype: FrontierBirthdayGift
 
 - type: startingGear
   id: CadetGear
@@ -26,4 +29,13 @@
     ears: ClothingHeadsetNfsdBrown # Frontier
     pocket1: WeaponPistolEnforser # Corvax-Frontier
     pocket2: BookSecurity
+<<<<<<< HEAD
     neck: ClothingNeckStarBronzeBadge # Corvax-Frontier
+=======
+  storage:
+    back:
+    - Flash
+    - MagazinePistol
+    - MagazinePistolRubber
+    - FrontierUplinkCoin10
+>>>>>>> upstream/master

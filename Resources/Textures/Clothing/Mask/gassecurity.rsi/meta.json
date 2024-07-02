@@ -15,6 +15,13 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
+=======
+      "name": "equipped-MASK-vulpkanin",
+      "directions": 4
+    },
+    {
+>>>>>>> upstream/master
       "name": "equipped-MASK-reptilian",
       "directions": 4
     },

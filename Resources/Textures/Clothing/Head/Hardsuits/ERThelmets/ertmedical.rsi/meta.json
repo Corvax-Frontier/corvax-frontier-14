@@ -1,7 +1,11 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
+<<<<<<< HEAD
   "copyright": "Created by discord:SOL(Артур)#8162",
+=======
+  "copyright": "Taken from paradisestation at commit https://github.com/ParadiseSS13/Paradise/commit/f09526480788c2e18fff8c16c4318fd6b4272c10. Vox states by Flareguy for Space Station 14",
+>>>>>>> upstream/master
   "size": {
     "x": 32,
     "y": 32
@@ -18,6 +22,7 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
       "name": "off-equipped-HELMET-resomi",
       "directions": 4
     },
@@ -27,6 +32,9 @@
     },
     {
       "name": "off-inhand-right",
+=======
+      "name": "off-equipped-HELMET-vox",
+>>>>>>> upstream/master
       "directions": 4
     },
     {
@@ -34,6 +42,7 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
       "name": "on-equipped-HELMET-resomi",
       "directions": 4
     },
@@ -43,6 +52,9 @@
     },
     {
       "name": "on-inhand-right",
+=======
+      "name": "on-equipped-HELMET-vox",
+>>>>>>> upstream/master
       "directions": 4
     }
   ]

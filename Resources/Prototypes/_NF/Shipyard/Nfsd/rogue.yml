@@ -8,6 +8,7 @@
 #  mapchecker_group_override: Security  # Treat this as a security vessel for mapchecker purposes
 #  shuttlePath: /Maps/_NF/Shuttles/Nfsd/rogue.yml
 
+<<<<<<< HEAD
 #- type: gameMap
 #  id: Rogue
 #  mapName: 'NSF Плут'
@@ -25,3 +26,21 @@
 #        - type: StationJobs
 #          overflowJobs: []
 #          availableJobs: {}
+=======
+- type: gameMap
+  id: Rogue
+  mapName: 'NSF Rogue'
+  mapPath: /Maps/_NF/Shuttles/Nfsd/rogue.yml
+  minPlayers: 0
+  stations:
+    Rogue:
+      stationProto: StandardFrontierSecurityVessel
+      components:
+        - type: StationNameSetup
+          mapNameTemplate: 'Rogue {1}'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefixCreator: '14'
+        - type: StationJobs
+          availableJobs: {}
+>>>>>>> upstream/master

@@ -26,10 +26,16 @@
     materialComposition:
       Glass: 50
   - type: SpaceGarbage
-  - type: WelderRefinable
+  - type: ToolRefinable
     refineResult:
+<<<<<<< HEAD
     - SheetGlass1
   - type: StaticPrice
     price: 1
   - type: TimedDespawn # Corvax-Frontier-Optimization
     lifetime: 600
+=======
+    - id: SheetGlass1
+  - type: StaticPrice # Frontier
+    price: 1 # Frontier
+>>>>>>> upstream/master

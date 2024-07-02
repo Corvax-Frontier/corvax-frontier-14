@@ -134,6 +134,10 @@ namespace Content.Server.Connection
             }
         }
 
+        /*
+         * TODO: Jesus H Christ what is this utter mess of a function
+         * TODO: Break this apart into is constituent steps.
+         */
         private async Task<(ConnectionDenyReason, string, List<ServerBanDef>? bansHit)?> ShouldDeny(
             NetConnectingArgs e)
         {
@@ -191,9 +195,9 @@ namespace Content.Server.Connection
                             ("reason", Loc.GetString("panic-bunker-account-reason-account", ("minutes", minMinutesAge)))), null);
                 }
 
-                var minOverallHours = _cfg.GetCVar(CCVars.PanicBunkerMinOverallHours);
-                var overallTime = (await _db.GetPlayTimes(e.UserId)).Find(p => p.Tracker == PlayTimeTrackingShared.TrackerOverall);
-                var haveMinOverallTime = overallTime != null && overallTime.TimeSpent.TotalHours > minOverallHours;
+                var minOverallMinutes = _cfg.GetCVar(CCVars.PanicBunkerMinOverallMinutes);
+                var overallTime = ( await _db.GetPlayTimes(e.UserId)).Find(p => p.Tracker == PlayTimeTrackingShared.TrackerOverall);
+                var haveMinOverallTime = overallTime != null && overallTime.TimeSpent.TotalMinutes > minOverallMinutes;
 
                 // Use the custom reason if it exists & they don't have the minimum time
                 if (customReason != string.Empty && !haveMinOverallTime && !bypassAllowed)
@@ -205,13 +209,21 @@ namespace Content.Server.Connection
                 {
                     return (ConnectionDenyReason.Panic,
                         Loc.GetString("panic-bunker-account-denied-reason",
-                            ("reason", Loc.GetString("panic-bunker-account-reason-overall", ("hours", minOverallHours)))), null);
+                            ("reason", Loc.GetString("panic-bunker-account-reason-overall", ("minutes", minOverallMinutes)))), null);
                 }
 
                 if (!validAccountAge || !haveMinOverallTime && !bypassAllowed)
                 {
                     return (ConnectionDenyReason.Panic, Loc.GetString("panic-bunker-account-denied"), null);
                 }
+            }
+
+            if (_cfg.GetCVar(CCVars.BabyJailEnabled) && adminData == null)
+            {
+                var result = await IsInvalidConnectionDueToBabyJail(userId, e);
+
+                if (result.IsInvalid)
+                    return (ConnectionDenyReason.BabyJail, result.Reason, null);
             }
 
             var wasInGame = EntitySystem.TryGet<GameTicker>(out var ticker) &&
@@ -259,6 +271,57 @@ namespace Content.Server.Connection
             }
             // end Frontier
             return null;
+        }
+
+        private async Task<(bool IsInvalid, string Reason)> IsInvalidConnectionDueToBabyJail(NetUserId userId, NetConnectingArgs e)
+        {
+            // If you're whitelisted then bypass this whole thing
+            if (await _db.GetWhitelistStatusAsync(userId))
+                return (false, "");
+
+            // Initial cvar retrieval
+            var showReason = _cfg.GetCVar(CCVars.BabyJailShowReason);
+            var reason = _cfg.GetCVar(CCVars.BabyJailCustomReason);
+            var maxAccountAgeMinutes = _cfg.GetCVar(CCVars.BabyJailMaxAccountAge);
+            var maxPlaytimeMinutes = _cfg.GetCVar(CCVars.BabyJailMaxOverallMinutes);
+
+            // Wait some time to lookup data
+            var record = await _dbManager.GetPlayerRecordByUserId(userId);
+
+            var isAccountAgeInvalid = record == null || record.FirstSeenTime.CompareTo(DateTimeOffset.Now - TimeSpan.FromMinutes(maxAccountAgeMinutes)) <= 0;
+            if (isAccountAgeInvalid && showReason)
+            {
+                var locAccountReason = reason != string.Empty
+                    ? reason
+                    : Loc.GetString("baby-jail-account-denied-reason",
+                        ("reason",
+                            Loc.GetString(
+                                "baby-jail-account-reason-account",
+                                ("minutes", maxAccountAgeMinutes))));
+
+                return (true, locAccountReason);
+            }
+
+            var overallTime = ( await _db.GetPlayTimes(e.UserId)).Find(p => p.Tracker == PlayTimeTrackingShared.TrackerOverall);
+            var isTotalPlaytimeInvalid = overallTime == null || overallTime.TimeSpent.TotalMinutes >= maxPlaytimeMinutes;
+
+            if (isTotalPlaytimeInvalid && showReason)
+            {
+                var locPlaytimeReason = reason != string.Empty
+                    ? reason
+                    : Loc.GetString("baby-jail-account-denied-reason",
+                        ("reason",
+                            Loc.GetString(
+                                "baby-jail-account-reason-overall",
+                                ("minutes", maxPlaytimeMinutes))));
+
+                return (true, locPlaytimeReason);
+            }
+
+            if (!showReason && isTotalPlaytimeInvalid || isAccountAgeInvalid)
+                return (true, Loc.GetString("baby-jail-account-denied"));
+
+            return (false, "");
         }
 
         private bool HasTemporaryBypass(NetUserId user)

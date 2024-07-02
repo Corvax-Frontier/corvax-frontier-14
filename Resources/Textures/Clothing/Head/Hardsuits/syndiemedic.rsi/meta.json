@@ -1,8 +1,12 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
+<<<<<<< HEAD
   "copyright": "Made by Hqlle (github)",
 
+=======
+  "copyright": "Based on tgstation at commit https://github.com/tgstation/tgstation/commit/4f6190e2895e09116663ef282d3ce1d8b35c032e, modified by EmoGarbage404 (github). Vox states by Flareguy for Space Station 14",
+>>>>>>> upstream/master
   "size": {
     "x": 32,
     "y": 32
@@ -19,6 +23,7 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
       "name": "off-equipped-HELMET-resomi",
       "directions": 4
     },
@@ -28,6 +33,9 @@
     },
     {
       "name": "off-inhand-right",
+=======
+      "name": "off-equipped-HELMET-vulpkanin",
+>>>>>>> upstream/master
       "directions": 4
     },
     {
@@ -35,15 +43,23 @@
       "directions": 4
     },
     {
+<<<<<<< HEAD
       "name": "on-equipped-HELMET-resomi",
       "directions": 4
     },
     {
       "name": "on-inhand-left",
+=======
+      "name": "on-equipped-HELMET-vulpkanin",
+>>>>>>> upstream/master
       "directions": 4
     },
     {
-      "name": "on-inhand-right",
+      "name": "off-equipped-HELMET-vox",
+      "directions": 4
+    },
+    {
+      "name": "on-equipped-HELMET-vox",
       "directions": 4
     }
   ]
