@@ -8,7 +8,9 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Content.Server.Administration.Systems;
 using Content.Server.GameTicking;
+using Content.Server.GameTicking.Components;
 using Content.Server.GameTicking.Presets;
+using Content.Server.GameTicking.Rules.Components;
 using Content.Server.Maps;
 using Content.Server.RoundEnd;
 using Content.Shared.Administration.Managers;
@@ -65,6 +67,8 @@ public sealed partial class ServerApi : IPostInjectInit
         _sawmill = _logManager.GetSawmill("serverApi");
 
         // Get
+        RegisterHandler(HttpMethod.Get, "/admin/info", InfoHandler); //frontier - not sure why this action needs an actor
+        RegisterHandler(HttpMethod.Get, "/admin/game_rules", GetGameRules);
         RegisterHandler(HttpMethod.Get, "/admin/presets", GetPresets);
 
         // Post
@@ -72,6 +76,8 @@ public sealed partial class ServerApi : IPostInjectInit
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/round/end", ActionRoundEnd);
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/round/restartnow", ActionRoundRestartNow);
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/kick", ActionKick);
+        RegisterActorHandler(HttpMethod.Post, "/admin/actions/add_game_rule", ActionAddGameRule);
+        RegisterActorHandler(HttpMethod.Post, "/admin/actions/end_game_rule", ActionEndGameRule);
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/force_preset", ActionForcePreset);
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/set_motd", ActionForceMotd);
         RegisterActorHandler(HttpMethod.Patch, "/admin/actions/panic_bunker", ActionPanicPunker);
@@ -419,6 +425,92 @@ public sealed partial class ServerApi : IPostInjectInit
         {
             Presets = presets
         });
+    }
+
+    /// <summary>
+    ///    Returns an array containing all game rules.
+    /// </summary>
+    private async Task GetGameRules(IStatusHandlerContext context)
+    {
+        var gameRules = new List<string>();
+        foreach (var gameRule in _prototypeManager.EnumeratePrototypes<EntityPrototype>())
+        {
+            if (gameRule.Abstract)
+                continue;
+
+            if (gameRule.HasComponent<GameRuleComponent>(_componentFactory))
+                gameRules.Add(gameRule.ID);
+        }
+
+        await context.RespondJsonAsync(new GameruleResponse
+        {
+            GameRules = gameRules
+        });
+    }
+
+
+    /// <summary>
+    ///     Handles fetching information.
+    /// </summary>
+    private async Task InfoHandler(IStatusHandlerContext context) //frontier - we had an actor here and never used it so we drop it for now until im compelled to re-add it
+    {
+        /*
+        Information to display
+        Round number
+        Connected players
+        Active admins
+        Active game rules
+        Active game preset
+        Active map
+        MOTD
+        Panic bunker status
+        */
+
+        var info = await RunOnMainThread<InfoResponse>(() =>
+        {
+            var ticker = _entitySystemManager.GetEntitySystem<GameTicker>();
+            var adminSystem = _entitySystemManager.GetEntitySystem<AdminSystem>();
+            var players = new List<InfoResponse.Player>();
+            foreach (var player in _playerManager.Sessions)
+            {
+                var adminData = _adminManager.GetAdminData(player, true);
+                players.Add(new InfoResponse.Player
+                {
+                    UserId = player.UserId.UserId,
+                    Name = player.Name,
+                    IsAdmin = adminData != null,
+                    IsDeadminned = !adminData?.Active ?? false
+                });
+            }
+            InfoResponse.MapInfo? mapInfo = null;
+            if (_gameMapManager.GetSelectedMap() is { } mapPrototype)
+            {
+                mapInfo = new InfoResponse.MapInfo
+                {
+                    Id = mapPrototype.ID,
+                    Name = mapPrototype.MapName
+                };
+            }
+            var gameRules = new List<string>();
+            foreach (var addedGameRule in ticker.GetActiveGameRules())
+            {
+                var meta = _entityManager.MetaQuery.GetComponent(addedGameRule);
+                gameRules.Add(meta.EntityPrototype?.ID ?? meta.EntityPrototype?.Name ?? "Unknown");
+            }
+            var panicBunkerCVars = PanicBunkerCVars.ToDictionary(c => c, c => _config.GetCVar(c));
+            return new InfoResponse
+            {
+                Players = players,
+                RoundId = ticker.RoundId,
+                Map = mapInfo,
+                PanicBunker = panicBunkerCVars,
+                GamePreset = ticker.CurrentPreset?.ID,
+                GameRules = gameRules,
+                MOTD = _config.GetCVar(CCVars.MOTD)
+            };
+        });
+
+        await context.RespondJsonAsync(info);
     }
 
     #endregion

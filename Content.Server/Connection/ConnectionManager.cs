@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Content.Corvax.Interfaces.Server;
 using Content.Corvax.Interfaces.Shared;
@@ -8,6 +9,8 @@ using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Server.Preferences.Managers;
+using Content.Server._NF.Auth;
+using Content.Server.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.Corvax.CCCVars;
 using Content.Shared.GameTicking;
@@ -58,6 +61,9 @@ namespace Content.Server.Connection
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly ILogManager _logManager = default!;
         [Dependency] private readonly IChatManager _chatManager = default!;
+        //frontier
+        [Dependency] private readonly MiniAuthManager _authManager = default!;
+
         private ISharedSponsorsManager? _sponsorsMgr; // Corvax-Sponsors
         private IServerVPNGuardManager? _vpnGuardMgr; // Corvax-VPNGuard
 
@@ -305,7 +311,21 @@ namespace Content.Server.Connection
                     return (ConnectionDenyReason.Whitelist, msg, null);
                 }
             }
-
+            //Frontier
+            //This is our little chunk that serves as a dAuth. It takes in a comma separated list of IP:PORT, and checks
+            //the requesting player against the list of players logged in to other servers. It is intended to be failsafe.
+            //In the case of Admins, it shares the same bypass setting as the soft_max_player_limit
+            if (!_cfg.GetCVar(CCVars.AllowMultiConnect) && !adminBypass)
+            {
+                var serverListString = _cfg.GetCVar(CCVars.ServerAuthList);
+                var serverList = serverListString.Split(",");
+                foreach (var server in serverList)
+                {
+                    if (await _authManager.IsPlayerConnected(server, userId))
+                        return (ConnectionDenyReason.Connected, Loc.GetString("multiauth-already-connected"), null);
+                }
+            }
+            // end Frontier
             return null;
         }
 
