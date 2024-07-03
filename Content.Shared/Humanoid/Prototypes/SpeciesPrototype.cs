@@ -31,7 +31,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// </summary>
     [DataField(required: true)]
     public bool RoundStart { get; private set; } = false;
-	
+
     // Corvax-Sponsors-Start
     /// <summary>
     /// Whether the species is available only for sponsors

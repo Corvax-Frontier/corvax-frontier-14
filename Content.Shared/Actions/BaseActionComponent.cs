@@ -10,8 +10,8 @@ namespace Content.Shared.Actions;
 
 // TODO add access attribute. Need to figure out what to do with decal & mapping actions.
 
-//[EntityCategory("Actions")]//Corvax-Frontier change after upstream 020724
-[Access(typeof(SharedActionsSystem))] //Before upstream 020724
+[EntityCategory("Actions")]
+//[Access(typeof(SharedActionsSystem))] //Before upstream 020724
 public abstract partial class BaseActionComponent : Component
 {
     public abstract BaseActionEvent? BaseEvent { get; }
@@ -102,6 +102,8 @@ public abstract partial class BaseActionComponent : Component
     ///     Entity to use for the action icon. If no entity is provided and the <see cref="Container"/> differs from
     ///     <see cref="AttachedEntity"/>, then it will default to using <see cref="Container"/>
     /// </summary>
+
+    [ViewVariables(VVAccess.ReadWrite)]
     public EntityUid? EntityIcon
     {
         get

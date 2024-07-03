@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using Content.Shared.Hands.Components;
 using Content.Shared.Interaction.Components;
@@ -61,6 +62,7 @@ public sealed partial class BorgSystem
         if (_actions.AddAction(chassis, ref component.ModuleSwapActionEntity, out var action, component.ModuleSwapActionId, uid))
         {
             action.EntityIcon = uid;
+
             Dirty(component.ModuleSwapActionEntity.Value, action);
         }
 
