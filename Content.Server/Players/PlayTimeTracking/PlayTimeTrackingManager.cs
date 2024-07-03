@@ -81,6 +81,8 @@ public sealed partial class PlayTimeTrackingManager : ISharedPlaytimeManager
 
     public event CalcPlayTimeTrackersCallback? CalcTrackers;
 
+    public event Action<ICommonSession>? SessionPlayTimeUpdated;
+
     public void Initialize()
     {
         _sawmill = Logger.GetSawmill("play_time");
@@ -183,7 +185,6 @@ public sealed partial class PlayTimeTrackingManager : ISharedPlaytimeManager
             FlushSingleTracker(data, time);
         }
     }
-
     /// <summary>
     /// Flush time tracker information for a player,
     /// so APIs like <see cref="GetPlayTimeForTracker"/> return up-to-date info.

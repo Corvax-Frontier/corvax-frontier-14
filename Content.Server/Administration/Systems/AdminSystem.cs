@@ -15,6 +15,7 @@ using Content.Shared.Administration.Events;
 using Content.Shared.Bank.Components;
 using Content.Shared.Bank.Events;
 using Content.Shared.CCVar;
+using Content.Shared.Corvax.CCCVars;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.Components;
 using Content.Shared.IdentityManagement;
@@ -72,14 +73,21 @@ namespace Content.Server.Administration.Systems
 
             _playerManager.PlayerStatusChanged += OnPlayerStatusChanged;
             _adminManager.OnPermsChanged += OnAdminPermsChanged;
+            _playTime.SessionPlayTimeUpdated += OnSessionPlayTimeUpdated;
 
+            // Panic Bunker Settings
             Subs.CVar(_config, CCVars.PanicBunkerEnabled, OnPanicBunkerChanged, true);
             Subs.CVar(_config, CCVars.PanicBunkerDisableWithAdmins, OnPanicBunkerDisableWithAdminsChanged, true);
             Subs.CVar(_config, CCVars.PanicBunkerEnableWithoutAdmins, OnPanicBunkerEnableWithoutAdminsChanged, true);
             Subs.CVar(_config, CCVars.PanicBunkerCountDeadminnedAdmins, OnPanicBunkerCountDeadminnedAdminsChanged, true);
-            Subs.CVar(_config, CCVars.PanicBunkerShowReason, OnShowReasonChanged, true);
+            Subs.CVar(_config, CCVars.PanicBunkerShowReason, OnPanicBunkerShowReasonChanged, true);
             Subs.CVar(_config, CCVars.PanicBunkerMinAccountAge, OnPanicBunkerMinAccountAgeChanged, true);
-            Subs.CVar(_config, CCVars.PanicBunkerMinOverallHours, OnPanicBunkerMinOverallHoursChanged, true);
+            Subs.CVar(_config, CCVars.PanicBunkerMinOverallMinutes, OnPanicBunkerMinOverallMinutesChanged, true);
+            Subs.CVar(_config, CCCVars.PanicBunkerDenyVPN, OnPanicBunkerDenyVpnChanged, true); // Corvax-VPNGuard
+
+            /*
+             * TODO: Remove baby jail code once a more mature gateway process is established. This code is only being issued as a stopgap to help with potential tiding in the immediate future.
+             */
 
             SubscribeLocalEvent<IdentityChangedEvent>(OnIdentityChanged);
             SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
@@ -87,8 +95,6 @@ namespace Content.Server.Administration.Systems
             SubscribeLocalEvent<RoleAddedEvent>(OnRoleEvent);
             SubscribeLocalEvent<RoleRemovedEvent>(OnRoleEvent);
             SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
-            SubscribeLocalEvent<BalanceChangedEvent>(OnBalanceChanged);
-
         }
 
         private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
@@ -287,7 +293,7 @@ namespace Content.Server.Administration.Systems
             UpdatePanicBunker();
         }
 
-        private void OnShowReasonChanged(bool enabled)
+        private void OnPanicBunkerShowReasonChanged(bool enabled)
         {
             PanicBunker.ShowReason = enabled;
             SendPanicBunkerStatusAll();
@@ -295,15 +301,23 @@ namespace Content.Server.Administration.Systems
 
         private void OnPanicBunkerMinAccountAgeChanged(int minutes)
         {
-            PanicBunker.MinAccountAgeHours = minutes / 60;
+            PanicBunker.MinAccountAgeMinutes = minutes;
             SendPanicBunkerStatusAll();
         }
 
-        private void OnPanicBunkerMinOverallHoursChanged(int hours)
+        private void OnPanicBunkerMinOverallMinutesChanged(int minutes)
         {
-            PanicBunker.MinOverallHours = hours;
+            PanicBunker.MinOverallMinutes = minutes;
             SendPanicBunkerStatusAll();
         }
+
+        // Corvax-VPNGuard-Start
+        private void OnPanicBunkerDenyVpnChanged(bool deny)
+        {
+            PanicBunker.DenyVpn = deny;
+            SendPanicBunkerStatusAll();
+        }
+        // Corvax-VPNGuard-End
 
         private void UpdatePanicBunker()
         {
@@ -311,6 +325,19 @@ namespace Content.Server.Administration.Systems
                 ? _adminManager.AllAdmins
                 : _adminManager.ActiveAdmins;
             var hasAdmins = admins.Any();
+
+            // TODO Fix order dependent Cvars
+            // Please for the sake of my sanity don't make cvars & order dependent.
+            // Just make a bool field on the system instead of having some cvars automatically modify other cvars.
+            //
+            // I.e., this:
+            //   /sudo cvar game.panic_bunker.enabled true
+            //   /sudo cvar game.panic_bunker.disable_with_admins true
+            // and this:
+            //   /sudo cvar game.panic_bunker.disable_with_admins true
+            //   /sudo cvar game.panic_bunker.enabled true
+            //
+            // should have the same effect, but currently setting the disable_with_admins can modify enabled.
 
             if (hasAdmins && PanicBunker.DisableWithAdmins)
             {
@@ -402,6 +429,11 @@ namespace Content.Server.Administration.Systems
             QueueDel(entity);
 
             _gameTicker.SpawnObserver(player);
+        }
+
+        private void OnSessionPlayTimeUpdated(ICommonSession session)
+        {
+            UpdatePlayerList(session);
         }
     }
 }
