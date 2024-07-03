@@ -43,9 +43,6 @@
     enabled: true
     radius: 2
     cycleRate: 0.01
-    cycleRate: 0.01
-    cycleRate: 0.01
-    cycleRate: 0.01
   - type: InteractionPopup
     successChance: 1
     interactSuccessString: pat-success-elzuosa

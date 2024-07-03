@@ -10,5 +10,10 @@ namespace Content.Server.Corvax.Elzuosa
     public sealed partial class ElzuosaColorComponent : Component
     {
         public Color SkinColor { get; set; }
+
+        public bool Hacked { get; set; } = false;
+
+        [DataField("cycleRate")]
+        public float CycleRate = 1f;
     }
 }
