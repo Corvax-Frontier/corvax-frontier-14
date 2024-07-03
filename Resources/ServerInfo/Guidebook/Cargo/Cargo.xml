@@ -1,4 +1,5 @@
 <Document>
+<<<<<<< HEAD
   # Cargo
 
   The Supply department, also known as [color=cyan]Cargo[/color], supplies the station with necessary resources, such as fuel and raw materials, and comfort resources, such as lottery tickets and plushies.
@@ -9,11 +10,18 @@
 
   Cargo is made up of [color=cyan]Cargo Technicians[/color] and [color=cyan]Salvage Specialists[/color] and is led by the [color=cyan]Quartermaster[/color].
 
+=======
+  # Снабжение
+  Отдел снабжения, более известный как Карго, отвечает за обеспечение станции необходимыми ресурсами, такими как топливо и сырьё. Впрочем, они не ограничиваются простыми товарами и могут заказывать самые разные предметы за пределами станции. Суть в том, что в обязанности Карго входит доставка всего необходимого на станцию.
+
+  ## Заказ
+>>>>>>> 52c7c8a11c86fbafbf2cf46e548fe9f7f836ce66
   <Box>
     <GuideEntityEmbed Entity="ToyFigurineCargoTech" Caption="Cargo Tech"/>
     <GuideEntityEmbed Entity="ToyFigurineSalvage" Caption="Salvage"/>
     <GuideEntityEmbed Entity="ToyFigurineQuartermaster" Caption="QM"/>
   </Box>
+<<<<<<< HEAD
 
   ## Making Money
 
@@ -21,11 +29,32 @@
 
   Cargo makes their money by selling things at the [color=cyan]Trading Station[/color]. Almost everything on the station has economic value that you can sell, as seen via the [color=cyan]appraisal tool[/color]. That value then further increases when you sell it as part of a [textlink="bounty" link="CargoBounties"].
 
+=======
+  Каждая ваша сделка начинается с [color=#a4885c]консоли заказа грузов[/color], в которой вы можете сделать заказ на определённые товары. Для выполнения любого заказа требуются [color=#118C4F]кредиты[/color], валюта станции. Чтобы сделать заказ, нажмите кнопку "заказать" рядом с тем, что вам нужно, напишите соответствующую причину заказа и нажмите "одобрить", когда он появится под списком запросов.
+
+  ## Пилотирование
+  Заказы доставляются на станцию с помощью [color=#a4885c]Торговой станции[/color], затем транспортируются с помощью грузового шаттла - дистанционно управляемого челнока, который используется для перевозки грузов с торговой станции и обратно. Чтобы переместить шаттл, вам нужно сначала найти [color=#a4885c]компьютер грузового шаттла[/color] на станции или на самом шаттле.
+  <Box>
+    <GuideEntityEmbed Entity="ComputerCargoShuttle"/>
+  </Box>
+  После нажатия на компьютер вы должны увидеть изображение шаттла на радаре. Вот шаги по управлению шаттлом туда и обратно:
+
+  - Сначала отсоедините все шлюзы, подключенные к доку.
+  - Затем вам предстоит управлять шаттлом. Управление довольно простое: [color=#028ed9]"W"[/color] и [color=#028ed9]"S"[/color] - это движение вперед и назад, [color=#028ed9]"A"[/color] и [color=#028ed9]"D"[/color] - влево и вправо, а [color=#028ed9]"Q"[/color] и [color=#028ed9]"E"[/color] - вращение влево и вправо; а [color=#028ed9]"Пробед"[/color] - тормоз и точное перемещение, удерживая [color=#028ed9]"Пробел"[/color] во время других действий.
+  - Затем направьте шаттл к [textlink="Торговой станции" link="TradeStation"].
+
+  ## Продажа
+  Вы хотите что-то заказать, но у вас нет на это денег? Вам просто нужно что-то продать! Почти всё на станции имеет экономическую ценность, которую вам может огласить [color=#a4885c]оценочный инструмент[/color].
+>>>>>>> 52c7c8a11c86fbafbf2cf46e548fe9f7f836ce66
   <Box>
     <GuideEntityEmbed Entity="AppraisalTool"/>
     <GuideEntityEmbed Entity="CargoPallet"/>
     <GuideEntityEmbed Entity="CrateGenericSteel"/>
   </Box>
+<<<<<<< HEAD
+=======
+  Найдя что-то стоящее, поместите это на грузовой шаттл, а затем отправьте его на [textlink="Торговую станцию" link="TradeStation"]. Затем продайте предмет и заберите кредиты из терминала. Вы также можете заработать еще больше денег, выполняя [textlink="поручения" link="CargoBounties"] или продавая ценные предметы с [textlink="экспедиций" link="Salvage"].
+>>>>>>> 52c7c8a11c86fbafbf2cf46e548fe9f7f836ce66
 
   Upon finding something valuable, bring it to the [color=cyan]Cargo Bay[/color]. If it fits inside a [color=cyan]Crate[/color], find an empty crate and put the items in it.
 

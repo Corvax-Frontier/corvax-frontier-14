@@ -1,7 +1,7 @@
 <Document>
-# Medical
-This is the department where people go to when they're hurt, it's up to the folks working here to fix them.
+# Медбей
 
+<<<<<<< HEAD
 ## Personnel
 [color=#5b97bc]Medical[/color]'s staff is made up of Medical Interns, Medical Doctors, Paramedics and Chemists. [color=#5b97bc]Medical[/color] is run by the Chief Medical Officer.
 
@@ -29,4 +29,29 @@ Right now, medbay is divided into two different sets of care:
     <GuideEntityEmbed Entity="PillCanister"/>
     <GuideEntityEmbed Entity="ChemMaster"/>
   </Box>
+=======
+Это отдел, куда люди обращаются с травмами, и только от работающих здесь людей зависит их устранение.
+
+В настоящее время медблок делится на два разных направления:
+
+## Медицинская помощь
+
+<Box>
+  <GuideEntityEmbed Entity="Brutepack"/>
+  <GuideEntityEmbed Entity="Bloodpack"/>
+  <GuideEntityEmbed Entity="Ointment"/>
+  <GuideEntityEmbed Entity="Gauze"/>
+  <GuideEntityEmbed Entity="HandheldHealthAnalyzer"/>
+</Box>
+
+## Химическое производство
+
+<Box>
+  <GuideEntityEmbed Entity="ChemDispenser"/>
+  <GuideEntityEmbed Entity="LargeBeaker"/>
+  <GuideEntityEmbed Entity="PillCanister"/>
+  <GuideEntityEmbed Entity="chem_master"/>
+</Box>
+
+>>>>>>> 52c7c8a11c86fbafbf2cf46e548fe9f7f836ce66
 </Document>
