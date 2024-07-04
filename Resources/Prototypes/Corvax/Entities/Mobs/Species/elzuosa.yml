@@ -4,6 +4,7 @@
   name: Urist McElzuosa
   abstract: true
   components:
+  - type: ElzuosaColor
   - type: Hunger # Corvax-Frontier
     starvationDamage:
       types:

@@ -1,75 +1,37 @@
-using Content.Server.Humanoid;
 using Content.Shared.Humanoid;
-using Content.Shared.Interaction;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Content.Server.Chat.Systems;
-using Content.Shared.Light;
-using Content.Shared.Light.Components;
-using Content.Shared.Tools.Components;
-using FastAccessors;
+using Content.Shared.Preferences;
 using Robust.Server.GameObjects;
-using Robust.Shared.Network;
-
+using Content.Server.GameTicking;
 namespace Content.Server.Corvax.Elzuosa
 {
     public sealed class ElzuosaColorSystem : EntitySystem
     {
-        [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearance = default!;
-        [Dependency] private readonly SharedRgbLightControllerSystem _rgbSystem = default!;
-        [Dependency] private readonly SharedPointLightSystem _sharedPointLightSystem = default!;
-        [Dependency] private readonly INetManager _netManager = default!;
+        [Dependency] private readonly PointLightSystem _pointLightSystem = default!;
         public override void Initialize()
         {
             base.Initialize();
 
-            SubscribeLocalEvent<ElzuosaColorComponent, MapInitEvent>(OnMapInit);
-            SubscribeLocalEvent<ElzuosaColorComponent, InteractUsingEvent>(OnInteractUsing);
-            //SubscribeLocalEvent<ElzuosaColorComponent, MapInitEvent>(OnInit);
+            SubscribeLocalEvent<ElzuosaColorComponent, PlayerSpawnCompleteEvent>(OnPlayerSpawn);
         }
 
-        private void OnMapInit(EntityUid uid, ElzuosaColorComponent comp, MapInitEvent args)
+        private void OnPlayerSpawn(EntityUid uid, ElzuosaColorComponent comp, PlayerSpawnCompleteEvent args)
         {
             if (!HasComp<HumanoidAppearanceComponent>(uid))
                 return;
-            if (TryComp<HumanoidAppearanceComponent>(uid, out var humanoid))
-            {
-                var color = humanoid.SkinColor;
-                _sharedPointLightSystem.SetColor(uid, color);
-            }
+            if (args == null)
+                return;
+            var profile = args.Profile;
+            SetEntityPointLightColor(uid, profile);
         }
-        /*private void OnInit(EntityUid uid, ElzuosaColorComponent comp, AfterAutoHandleStateEvent args)
+
+        public void SetEntityPointLightColor(EntityUid uid, HumanoidCharacterProfile? profile)
         {
-            if (!HasComp<HumanoidAppearanceComponent>(uid))
-                return;
-            if (TryComp<HumanoidAppearanceComponent>(uid, out var humanoid))
-            {
-                var color = humanoid.SkinColor;
-                _sharedPointLightSystem.SetColor(uid, color);
-            }
-        }*/
-
-        private void OnInteractUsing(EntityUid uid, ElzuosaColorComponent comp, InteractUsingEvent args)
-        {
-            if (args.Handled)
+            if (profile == null)
                 return;
 
-            if (!TryComp(args.Used, out ToolComponent? tool) || !tool.Qualities.ContainsAny("Pulsing"))
-                return;
+            var color = profile.Appearance.SkinColor;
+            _pointLightSystem.SetColor(uid,color);
 
-            args.Handled = true;
-            comp.Hacked = !comp.Hacked;
-
-            if (comp.Hacked)
-            {
-                var rgb = EnsureComp<RgbLightControllerComponent>(uid);
-                _rgbSystem.SetCycleRate(uid, comp.CycleRate, rgb);
-            }
-            else
-                RemComp<RgbLightControllerComponent>(uid);
         }
     }
 }
