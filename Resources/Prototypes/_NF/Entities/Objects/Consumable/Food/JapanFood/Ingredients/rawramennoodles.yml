@@ -1,8 +1,8 @@
 - type: entity
-  name: сухая лапша для рамэна
+  name: Raw Ramen Noodles
   parent: FoodBakingBase
   id: rawnoodles
-  description: Сухая лапша.
+  description: A raw ramen.
   components:
   - type: FlavorProfile
   - type: Sprite

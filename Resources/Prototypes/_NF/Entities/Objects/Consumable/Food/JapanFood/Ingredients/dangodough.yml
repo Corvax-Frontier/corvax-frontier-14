@@ -1,8 +1,8 @@
 - type: entity
-  name: шарик данго
+  name: Dough Dango Ball
   parent: FoodBakingBase
   id: Doughdangoball
-  description: Выглядит как шарик из теста.
+  description: A ball of dough.
   components:
   - type: FlavorProfile
     flavors:
