@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 using Content.Corvax.Interfaces.Server;
 using Content.Corvax.Interfaces.Shared;
 using Content.Server.Chat.Managers;
+using Content.Server._NF.Auth;
+using Content.Server.Administration;
 using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Server.Preferences.Managers;
-using Content.Server._NF.Auth;
-using Content.Server.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.Corvax.CCCVars;
-using Content.Shared.GameTicking;
 using Content.Shared.Players.PlayTimeTracking;
-using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Network;
@@ -31,6 +29,7 @@ namespace Content.Server.Connection
     public interface IConnectionManager
     {
         void Initialize();
+
         Task<bool> HavePrivilegedJoin(NetUserId userId); // Corvax-Queue
 
         /// <summary>
@@ -61,6 +60,9 @@ namespace Content.Server.Connection
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly ILogManager _logManager = default!;
         [Dependency] private readonly IChatManager _chatManager = default!;
+
+        private IServerSponsorsManager? _sponsorsMgr; //
+
         //frontier
         [Dependency] private readonly MiniAuthManager _authManager = default!;
 
@@ -215,11 +217,15 @@ namespace Content.Server.Connection
             }
 
             var adminData = await _dbManager.GetAdminDataForAsync(e.UserId);
+            // New Frontiers - Session Respector - Checks that a player was connected before applying panic bunker/baby jail/no whitelist on low pop checks
+            // This code is licensed under AGPLv3. See AGPLv3.txt
+            var wasInGame = EntitySystem.TryGet<GameTicker>(out var ticker) &&
+                            ticker.PlayerGameStatuses.ContainsKey(userId); // Frontier: remove status.JoinedGame check, TryGetValue<ContainsKey
 
             // Corvax-Start: Allow privileged players bypass bunker
             var isPrivileged = await HavePrivilegedJoin(e.UserId);
-            if (_cfg.GetCVar(CCVars.PanicBunkerEnabled) && adminData == null && !isPrivileged)
-            // Corvax-End
+            if (_cfg.GetCVar(CCVars.PanicBunkerEnabled) && adminData == null && !isPrivileged && !wasInGame) // Frontier: allow users who joined before panic bunker was enforced to reconnect
+                // Corvax-End
             {
                 var showReason = _cfg.GetCVar(CCVars.PanicBunkerShowReason);
                 var customReason = _cfg.GetCVar(CCVars.PanicBunkerCustomReason);
@@ -283,9 +289,15 @@ namespace Content.Server.Connection
                 }
             }
 
-            var wasInGame = EntitySystem.TryGet<GameTicker>(out var ticker) &&
-                            ticker.PlayerGameStatuses.TryGetValue(userId, out var status) &&
-                            status == PlayerGameStatus.JoinedGame;
+            if (_cfg.GetCVar(CCVars.BabyJailEnabled) && adminData == null && !wasInGame) // Frontier: allow users who joined before panic bunker was enforced to reconnect
+            {
+                var result = await IsInvalidConnectionDueToBabyJail(userId, e);
+
+                if (result.IsInvalid)
+                    return (ConnectionDenyReason.BabyJail, result.Reason, null);
+            }
+
+            // Frontier: wasInGame previously calculated here.
             var adminBypass = _cfg.GetCVar(CCVars.AdminBypassMaxPlayers) && adminData != null;
             // Corvax-Queue-Start
             var isQueueEnabled = IoCManager.Instance!.TryResolveType<IServerJoinQueueManager>(out var mgr) && mgr.IsEnabled;
@@ -295,7 +307,7 @@ namespace Content.Server.Connection
                 return (ConnectionDenyReason.Full, Loc.GetString("soft-player-cap-full"), null);
             }
 
-            if (_cfg.GetCVar(CCVars.WhitelistEnabled))
+            if (_cfg.GetCVar(CCVars.WhitelistEnabled) && !wasInGame) // Frontier: allow users who joined before panic bunker was enforced to reconnect
             {
                 var min = _cfg.GetCVar(CCVars.WhitelistMinPlayers);
                 var max = _cfg.GetCVar(CCVars.WhitelistMaxPlayers);
@@ -311,8 +323,11 @@ namespace Content.Server.Connection
                     return (ConnectionDenyReason.Whitelist, msg, null);
                 }
             }
+
+            // End of modified code
+
             //Frontier
-            //This is our little chunk that serves as a dAuth. It takes in a comma separated list of IP:PORT, and checks
+            //This is our little chunk that serves as a dAuth. It takes in a comma seperated list of IP:PORT, and chekcs
             //the requesting player against the list of players logged in to other servers. It is intended to be failsafe.
             //In the case of Admins, it shares the same bypass setting as the soft_max_player_limit
             if (!_cfg.GetCVar(CCVars.AllowMultiConnect) && !adminBypass)
@@ -327,6 +342,57 @@ namespace Content.Server.Connection
             }
             // end Frontier
             return null;
+        }
+
+        private async Task<(bool IsInvalid, string Reason)> IsInvalidConnectionDueToBabyJail(NetUserId userId, NetConnectingArgs e)
+        {
+            // If you're whitelisted then bypass this whole thing
+            if (await _db.GetWhitelistStatusAsync(userId))
+                return (false, "");
+
+            // Initial cvar retrieval
+            var showReason = _cfg.GetCVar(CCVars.BabyJailShowReason);
+            var reason = _cfg.GetCVar(CCVars.BabyJailCustomReason);
+            var maxAccountAgeMinutes = _cfg.GetCVar(CCVars.BabyJailMaxAccountAge);
+            var maxPlaytimeMinutes = _cfg.GetCVar(CCVars.BabyJailMaxOverallMinutes);
+
+            // Wait some time to lookup data
+            var record = await _dbManager.GetPlayerRecordByUserId(userId);
+
+            var isAccountAgeInvalid = record == null || record.FirstSeenTime.CompareTo(DateTimeOffset.Now - TimeSpan.FromMinutes(maxAccountAgeMinutes)) <= 0;
+            if (isAccountAgeInvalid && showReason)
+            {
+                var locAccountReason = reason != string.Empty
+                    ? reason
+                    : Loc.GetString("baby-jail-account-denied-reason",
+                        ("reason",
+                            Loc.GetString(
+                                "baby-jail-account-reason-account",
+                                ("minutes", maxAccountAgeMinutes))));
+
+                return (true, locAccountReason);
+            }
+
+            var overallTime = ( await _db.GetPlayTimes(e.UserId)).Find(p => p.Tracker == PlayTimeTrackingShared.TrackerOverall);
+            var isTotalPlaytimeInvalid = overallTime == null || overallTime.TimeSpent.TotalMinutes >= maxPlaytimeMinutes;
+
+            if (isTotalPlaytimeInvalid && showReason)
+            {
+                var locPlaytimeReason = reason != string.Empty
+                    ? reason
+                    : Loc.GetString("baby-jail-account-denied-reason",
+                        ("reason",
+                            Loc.GetString(
+                                "baby-jail-account-reason-overall",
+                                ("minutes", maxPlaytimeMinutes))));
+
+                return (true, locPlaytimeReason);
+            }
+
+            if (!showReason && isTotalPlaytimeInvalid || isAccountAgeInvalid)
+                return (true, Loc.GetString("baby-jail-account-denied"));
+
+            return (false, "");
         }
 
         private bool HasTemporaryBypass(NetUserId user)
@@ -351,7 +417,6 @@ namespace Content.Server.Connection
             await _db.AssignUserIdAsync(name, assigned);
             return assigned;
         }
-
         // Corvax-Queue-Start: Make these conditions in one place, for checks in the connection and in the queue
         public async Task<bool> HavePrivilegedJoin(NetUserId userId)
         {
