@@ -39,7 +39,7 @@
                 <Label Text="{Loc generic-minutes}" />
             </BoxContainer>
             <!-- Corvax-VPNGuard-Start -->
-            <BoxContainer Orientation="Horizontal" Margin="2" Visible="False" Name="VPNContainer">
+            <BoxContainer Orientation="Horizontal" Margin="2" Visible="True" Name="VPNContainer">
                 <CheckBox Name="DenyVPN" Text="{Loc admin-ui-panic-bunker-deny-vpn}" />
             </BoxContainer>
             <!-- Corvax-VPNGuard-End -->
