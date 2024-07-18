@@ -30,7 +30,7 @@ public sealed class AutoDeleteSystem : EntitySystem
             {
                 return;
             }
-
+            
             if (autoDeleteComponent.NextTimeToCheck > _gameTiming.CurTime)
                 return;
 
@@ -47,12 +47,12 @@ public sealed class AutoDeleteSystem : EntitySystem
                 {
                     autoDeleteComponent.IsSSDNear = false;
                 }
-                    
+
                 if (iterator.Owner == uid)
                     continue;
 
                 var humanoids = new HashSet<Entity<HumanoidAppearanceComponent>>();
-
+                
                 _lookup.GetEntitiesInRange(xform.Coordinates, autoDeleteComponent.DistanceToCheck, humanoids);
 
                 if (humanoids.Count > 0 && !autoDeleteComponent.IsSSDNear)

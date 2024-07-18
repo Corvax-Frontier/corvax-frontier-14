@@ -4,6 +4,7 @@
   name: Urist McElzuosa
   abstract: true
   components:
+  - type: ElzuosaColor
   - type: Hunger # Corvax-Frontier
     starvationDamage:
       types:
@@ -42,6 +43,7 @@
   - type: PointLight
     enabled: true
     radius: 2
+    cycleRate: 0.01
   - type: InteractionPopup
     successChance: 1
     interactSuccessString: pat-success-elzuosa
