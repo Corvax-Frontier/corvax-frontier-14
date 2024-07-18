@@ -1,0 +1,22 @@
+- type: entity
+  parent:  MarkerBase
+  id: PeacefulZone
+  name: peaceful-zone-name
+  description: peaceful-zone-description
+  components:
+  - type: Sprite
+    sprite: _NF/peacefulzone.rsi
+    state: peaceful_zone
+  - type: PeacefulZoneGenerator
+    radius: 300 # this is the value chosen by Kmin
+    rolesImmun:
+      - Bailiff
+      - Brigmedic
+      - Cadet
+      - Deputy
+      - DetectiveNF
+      - SeniorOfficer
+      - Sheriff
+      - SecurityGuard
+      - StationRepresentative
+      - StationTrafficController
