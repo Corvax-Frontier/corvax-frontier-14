@@ -174,6 +174,12 @@ namespace Content.Server.Database
         /// <param name="updates">The list of all updates to apply to the database.</param>
         Task UpdatePlayTimes(IReadOnlyCollection<PlayTimeUpdate> updates);
 
+        /// <summary>
+        /// Change balance in db
+        /// </summary>
+        /// <param name="money">The list of all updates to apply to the database.</param>
+        Task SetAllBalance(int set_balance);
+
         #endregion
 
         #region Player Records
@@ -535,6 +541,11 @@ namespace Content.Server.Database
         {
             DbWriteOpsMetric.Inc();
             return RunDbCommand(() => _db.UpdatePlayerRecord(userId, userName, address, hwId));
+        }
+
+        public Task SetAllBalance(int set_balance) {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.SetAllBalance(set_balance));
         }
 
         public Task<PlayerRecord?> GetPlayerRecordByUserName(string userName, CancellationToken cancel = default)

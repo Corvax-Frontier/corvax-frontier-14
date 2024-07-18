@@ -265,6 +265,13 @@ namespace Content.Server.Database
             );
         }
 
+        public async Task SetAllBalance(int set_balance)
+        {
+            await using var db = await GetDb();
+            await db.DbContext.Database.ExecuteSqlAsync($"""UPDATE profile SET bank_balance = {set_balance}""");
+            await db.DbContext.SaveChangesAsync();
+        }
+
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
         {
             profile ??= new Profile();
