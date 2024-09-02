@@ -78,6 +78,7 @@
     BaseBoomBoxTapeRamseyGoodbye: 3
     BaseBoomBoxTapeSamuelKimGunsForHire: 3
     BaseBoomBoxTapeSigridEverybodyKnows: 3
+    MusicPlayer: 5
   contrabandInventory:
 #    SeashellInstrument: 1 This is actully just static noises
 #    ReverseCymbalsInstrument: 1 Sounds bad
